@@ -1,14 +1,6 @@
-@RequestMapping("/api")
-public class ApiController {
-
-    @Autowired
-    private RestTemplate restTemplate;
-
-    @Value("${api.url}")
-    private String apiUrl;
-
-    @GetMapping("/call-api")
-    public ResponseEntity<String> callApi() {
-        ResponseEntity<String> response = restTemplate.getForEntity(apiUrl, String.class);
-        return response;
+ @Bean
+    public RestTemplate restTemplate(RestTemplateBuilder restTemplateBuilder) {
+        SimpleClientHttpRequestFactory factory = new SimpleClientHttpRequestFactory();
+        factory.setProxy(new java.net.Proxy(java.net.Proxy.Type.HTTP, java.net.ProxySelector.getDefault()));
+        return new RestTemplate(factory);
     }
