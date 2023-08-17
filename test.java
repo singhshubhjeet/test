@@ -32,12 +32,6 @@ public class RestTemplateConfig {
         // Add Basic Authentication for the proxy
         restTemplate.getInterceptors().add(new BasicAuthenticationInterceptor(proxyUsername, proxyPassword));
 
-        // Add Bearer token to the headers
-        HttpHeaders headers = new HttpHeaders();
-        headers.set("Authorization", "Bearer " + apiBearerToken);
-        
-        restTemplate.getInterceptors().add(new BearerTokenHeaderInterceptor(headers));
-
         return restTemplate;
     }
 
@@ -49,5 +43,12 @@ public class RestTemplateConfig {
 
     private Proxy createProxy() {
         return new Proxy(Proxy.Type.HTTP, new InetSocketAddress(proxyHost, proxyPort));
+    }
+
+    // Method to create HttpHeaders with Bearer token
+    private HttpHeaders createHeadersWithBearerToken() {
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("Authorization", "Bearer " + apiBearerToken);
+        return headers;
     }
 }
