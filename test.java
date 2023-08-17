@@ -1,36 +1,47 @@
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Bean;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.client.RestTemplate;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
-import java.net.InetSocketAddress;
-import java.net.Proxy;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.client.RestTemplate;
 
-public class ApiCaller {
-    public static void main(String[] args) {
-        String apiUrl = "https://abc.com/test";
-        String proxyHost = "xyz.fd.dsd";
-        int proxyPort = 8080;
-        String bearerToken = "yourBearerTokenHere";
+@Controller
+public class ApiController {
+
+    @Value("${proxy.host}") // Read proxy host from application.properties
+    private String proxyHost;
+
+    @Value("${proxy.port}") // Read proxy port from application.properties
+    private int proxyPort;
+
+    @Value("${api.url}") // Read API URL from application.properties
+    private String apiUrl;
+
+    @Value("${bearer.token}") // Read bearer token from application.properties
+    private String bearerToken;
+
+    @Bean
+    public RestTemplate restTemplate() {
+        SimpleClientHttpRequestFactory factory = new SimpleClientHttpRequestFactory();
         
-        // Set up a proxy using the provided proxy host and port
-        SimpleClientHttpRequestFactory requestFactory = new SimpleClientHttpRequestFactory();
-        Proxy proxy = new Proxy(Proxy.Type.HTTP, new InetSocketAddress(proxyHost, proxyPort));
-        requestFactory.setProxy(proxy);
+        // Set proxy for RestTemplate
+        if (!proxyHost.isEmpty() && proxyPort > 0) {
+            factory.setProxy(new Proxy(Proxy.Type.HTTP, new InetSocketAddress(proxyHost, proxyPort)));
+        }
+        
+        return new RestTemplate(factory);
+    }
 
-        // Create the RestTemplate instance with the proxy configuration
-        RestTemplate restTemplate = new RestTemplate(requestFactory);
-
-        // Set the Bearer token in the request headers
+    @GetMapping("/call-api")
+    public ResponseEntity<String> callApiWithProxyAndBearerToken() {
         HttpHeaders headers = new HttpHeaders();
         headers.set("Authorization", "Bearer " + bearerToken);
-        HttpEntity<String> entity = new HttpEntity<>(headers);
 
-        // Make the API call using the RestTemplate
-        ResponseEntity<String> response = restTemplate.exchange(apiUrl, HttpMethod.GET, entity, String.class);
+        HttpEntity<String> requestEntity = new HttpEntity<>(headers);
 
-        // Print the response
-        System.out.println("Response: " + response.getBody());
+        ResponseEntity<String> responseEntity = restTemplate.exchange(apiUrl, HttpMethod.GET, requestEntity, String.class);
+
+        return responseEntity;
     }
 }
