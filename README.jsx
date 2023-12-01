@@ -2,45 +2,24 @@ import React, { useState } from 'react';
 
 const SamlMetadataBuilder = () => {
   const [metadata, setMetadata] = useState('');
-  const [entityId, setEntityId] = useState('https://your-app-entity-id');
-  const [acsUrl, setAcsUrl] = useState('https://your-app-acs-url');
-  const [certificate, setCertificate] = useState(''); // Optional parameter
+  const [entityId, setEntityId] = useState('');
+  const [acsUrl, setAcsUrl] = useState('');
+  const [certificate, setCertificate] = useState('');
   const [nameIdFormat, setNameIdFormat] = useState('urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified');
-  const [logoutUrl, setLogoutUrl] = useState(''); // Optional parameter
+  const [logoutUrl, setLogoutUrl] = useState('');
   const [authnRequestSigned, setAuthnRequestSigned] = useState(false);
   const [wantAssertionsSigned, setWantAssertionsSigned] = useState(false);
 
-  const buildMetadata = () => {
-    const metadataTemplate = `
-      <EntityDescriptor entityID="${entityId}">
-        <SPSSODescriptor protocolSupportEnumeration="urn:oasis:names:tc:SAML:2.0:protocol">
-          <NameIDFormat>${nameIdFormat}</NameIDFormat>
-          <AssertionConsumerService Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST" Location="${acsUrl}" />
-          ${logoutUrl && `<SingleLogoutService Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect" Location="${logoutUrl}" />`}
-          ${authnRequestSigned && `<AuthnRequestsSigned>true</AuthnRequestsSigned>`}
-          ${wantAssertionsSigned && `<WantAssertionsSigned>true</WantAssertionsSigned>`}
-          <KeyDescriptor>
-            <KeyInfo>
-              <X509Data>
-                <X509Certificate>${certificate}</X509Certificate>
-              </X509Data>
-            </KeyInfo>
-          </KeyDescriptor>
-        </SPSSODescriptor>
-      </EntityDescriptor>
-    `;
-
-    setMetadata(metadataTemplate);
-  };
-
   const downloadMetadata = () => {
-    const blob = new Blob([metadata], { type: 'application/xml' });
-    const link = document.createElement('a');
-    link.href = window.URL.createObjectURL(blob);
-    link.download = 'saml-metadata.xml';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    const blob = new Blob([metadata], { type: 'text/xml' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'metadata.xml';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
   };
 
   return (
@@ -61,7 +40,10 @@ const SamlMetadataBuilder = () => {
         </label>
         <label>
           Name ID Format:
-          <input type="text" value={nameIdFormat} onChange={(e) => setNameIdFormat(e.target.value)} />
+          <select value={nameIdFormat} onChange={(e) => setNameIdFormat(e.target.value)}>
+            <option value="urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified">Unspecified</option>
+            {/* Add other options as needed */}
+          </select>
         </label>
         <label>
           Logout URL (optional):
@@ -75,8 +57,19 @@ const SamlMetadataBuilder = () => {
           Want Assertions Signed:
           <input type="checkbox" checked={wantAssertionsSigned} onChange={() => setWantAssertionsSigned(!wantAssertionsSigned)} />
         </label>
-        <button onClick={buildMetadata}>Build Metadata</button>
-        {metadata && <button onClick={downloadMetadata}>Download Metadata</button>}
+        <button onClick={() => setMetadata(`
+          <EntityDescriptor entityID="${entityId}">
+            <SPSSODescriptor protocolSupportEnumeration="urn:oasis:names:tc:SAML:2.0:protocol">
+              <NameIDFormat>${nameIdFormat}</NameIDFormat>
+              <AssertionConsumerService Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST" Location="${acsUrl}" />
+              ${logoutUrl && `<SingleLogoutService Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect" Location="${logoutUrl}" />`}
+              ${authnRequestSigned && '<AuthnRequestsSigned>true</AuthnRequestsSigned>'}
+              ${wantAssertionsSigned && '<WantAssertionsSigned>true</WantAssertionsSigned>'}
+              ${certificate && `<KeyDescriptor use="signing"><KeyInfo><X509Data><X509Certificate>${certificate}</X509Certificate></X509Data></KeyInfo></KeyDescriptor>`}
+            </SPSSODescriptor>
+          </EntityDescriptor>
+        `)}>Build Metadata</button>
+        <button onClick={downloadMetadata}>Download Metadata</button>
       </div>
       <div className="result">
         <h3>Generated Metadata:</h3>
