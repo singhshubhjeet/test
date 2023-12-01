@@ -5,5 +5,12 @@ const metadata =
       `    <md:AssertionConsumerService Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST" Location="${acsUrl}" />\n` +
       (nameIdFormat ? `    <md:NameIDFormat>${nameIdFormat}</md:NameIDFormat>\n` : '') +
       (logoutUrl ? `    <md:SingleLogoutService Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect" Location="${logoutUrl}" />\n` : '') +
+      (certificate ? `    <md:KeyDescriptor use="signing">\n` +
+                    `      <ds:KeyInfo xmlns:ds="http://www.w3.org/2000/09/xmldsig#">\n` +
+                    `        <ds:X509Data>\n` +
+                    `          <ds:X509Certificate>${certificate}</ds:X509Certificate>\n` +
+                    `        </ds:X509Data>\n` +
+                    `      </ds:KeyInfo>\n` +
+                    `    </md:KeyDescriptor>\n` : '') +
       '  </md:SPSSODescriptor>\n' +
       '</md:EntityDescriptor>';
