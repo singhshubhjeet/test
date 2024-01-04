@@ -6,12 +6,7 @@ const SamlDecoder: React.FC = () => {
 
   const decodeSamlRequest = () => {
     try {
-      const parser = new DOMParser();
-      const xmlDoc = parser.parseFromString(samlRequest, 'application/xml');
-
-      const base64Request = xmlDoc.querySelector('samlp\\:AuthnRequest')?.textContent;
-      const decodedRequest = base64Request ? atob(base64Request) : '';
-      
+      const decodedRequest = Buffer.from(samlRequest, 'base64').toString('utf-8');
       setDecodedValue(decodedRequest);
     } catch (error) {
       console.error('Error decoding SAML Request:', error.message);
