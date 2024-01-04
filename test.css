@@ -1,33 +1,39 @@
+import React, { useState } from 'react';
 
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>SAML Request Decoder</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      margin: 20px;
-    }
+const SamlDecoder: React.FC = () => {
+  const [samlRequest, setSamlRequest] = useState<string>('');
+  const [decodedValue, setDecodedValue] = useState<string>('');
 
-    textarea {
-      width: 100%;
-      height: 100px;
-    }
+  const decodeSamlRequest = () => {
+    try {
+      const parser = new DOMParser();
+      const xmlDoc = parser.parseFromString(samlRequest, 'application/xml');
 
-    button {
-      margin-top: 10px;
-      padding: 5px 10px;
-      cursor: pointer;
+      const base64Request = xmlDoc.querySelector('samlp\\:AuthnRequest')?.textContent;
+      const decodedRequest = base64Request ? atob(base64Request) : '';
+      
+      setDecodedValue(decodedRequest);
+    } catch (error) {
+      console.error('Error decoding SAML Request:', error.message);
+      setDecodedValue('Error decoding SAML Request. Please check the input.');
     }
+  };
 
-    pre {
-      white-space: pre-wrap;
-    }
-  </style>
-</head>
-<body>
-  <div id="root"></div>
-</body>
-</html>
+  return (
+    <div>
+      <h2>SAML Request Decoder</h2>
+      <textarea
+        placeholder="Paste your SAML Request here"
+        value={samlRequest}
+        onChange={(e) => setSamlRequest(e.target.value)}
+      />
+      <br />
+      <button onClick={decodeSamlRequest}>Decode</button>
+      <br />
+      <h3>Decoded Value:</h3>
+      <pre>{decodedValue}</pre>
+    </div>
+  );
+};
+
+export default SamlDecoder;
