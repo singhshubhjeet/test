@@ -7,11 +7,18 @@ const SamlDecoder: React.FC = () => {
   const decodeSamlRequest = () => {
     try {
       const decodedRequest = Buffer.from(samlRequest, 'base64').toString('utf-8');
-      setDecodedValue(decodedRequest);
+      const prettifiedXml = prettify(decodedRequest);
+      setDecodedValue(prettifiedXml);
     } catch (error) {
       console.error('Error decoding SAML Request:', error.message);
       setDecodedValue('Error decoding SAML Request. Please check the input.');
     }
+  };
+
+  const prettify = (xml: string) => {
+    const xmlDoc = new DOMParser().parseFromString(xml, 'application/xml');
+    const serializer = new XMLSerializer();
+    return serializer.serializeToString(xmlDoc);
   };
 
   return (
